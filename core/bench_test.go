@@ -69,6 +69,11 @@ func BenchmarkInsertChain_ring1000_diskdb(b *testing.B) {
 	benchInsertChain(b, true, genTxRing(1000))
 }
 
+//sj - benchmark with custom storage path
+func BenchmarkInsertChain_ring1000_custom_storage(b *testing.B) {
+	benchInsertChainCustomPath(b, "/home/femu/tenant0/p1", genTxRing(1000))
+}
+
 var (
 	// This is the content of the genesis block used by the benchmarks.
 	benchRootKey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
@@ -199,6 +204,30 @@ func benchInsertChain(b *testing.B, disk bool, gen func(int, *BlockGen)) {
 
 	// Time the insertion of the new chain.
 	// State and blocks are stored in the same DB.
+	chainman, _ := NewBlockChain(db, gspec, ethash.NewFaker(), nil)
+	defer chainman.Stop()
+	b.ReportAllocs()
+	b.ResetTimer()
+	if i, err := chainman.InsertChain(chain); err != nil {
+		b.Fatalf("insert error (block %d): %v\n", i, err)
+	}
+}
+
+//sj - benchmark with custom storage path
+func benchInsertChainCustomPath(b *testing.B, datadir string, gen func(int, *BlockGen)) {
+	pdb, err := pebble.New(datadir, 128, 128, "", false)
+	if err != nil {
+		b.Fatalf("cannot create database at %s: %v", datadir, err)
+	}
+	db := rawdb.NewDatabase(pdb)
+	defer db.Close()
+
+	gspec := &Genesis{
+		Config: params.TestChainConfig,
+		Alloc:  types.GenesisAlloc{benchRootAddr: {Balance: benchRootFunds}},
+	}
+	_, chain, _ := GenerateChainWithGenesis(gspec, ethash.NewFaker(), b.N, gen)
+
 	chainman, _ := NewBlockChain(db, gspec, ethash.NewFaker(), nil)
 	defer chainman.Stop()
 	b.ReportAllocs()
