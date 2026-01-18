@@ -18,7 +18,7 @@ mkdir -p ${RESULTS_DIR}
 
 # Step 2: Start Ethereum node (archive mode for full trace support)
 echo "=== Step 2: Starting Ethereum node in archive mode ==="
-echo "Command: geth --http --http.addr ${NODE_HTTP_ADDR} --http.port ${NODE_PORT} --syncmode full --cache=4096 --datadir /home/femu/tenant0/p1"
+echo "Command: geth --rpc --rpcaddr ${NODE_HTTP_ADDR} --rpcport ${NODE_PORT} --syncmode full --cache=4096 --datadir /home/femu/tenant0/p1"
 echo "Note: Run this in a separate terminal or as background process"
 echo "Waiting for node to be ready..."
 sleep 5
@@ -30,7 +30,7 @@ if ! curl -s -X POST -H "Content-Type: application/json" \
   http://${NODE_HTTP_ADDR}:${NODE_PORT} > /dev/null 2>&1; then
   echo "ERROR: Cannot connect to node at http://${NODE_HTTP_ADDR}:${NODE_PORT}"
   echo "Please start the node first with:"
-  echo "  geth --http --http.addr ${NODE_HTTP_ADDR} --http.port ${NODE_PORT} --syncmode full --cache=4096 --datadir /home/femu/tenant0/p1"
+  echo "  geth --rpc --rpcaddr ${NODE_HTTP_ADDR} --rpcport ${NODE_PORT} --syncmode full --cache=4096 --datadir /home/femu/tenant0/p1"
   exit 1
 fi
 echo "✓ Node is accessible"
